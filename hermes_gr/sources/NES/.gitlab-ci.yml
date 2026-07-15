@@ -1,0 +1,46 @@
+# Copyright 2018-2026 Earth Sciences Department, Barcelona Supercomputing Center (BSC-CNS)
+#
+# This file is part of NES.
+#
+# Licensed under the Apache License, Version 2.0. See LICENSE for details.
+
+# GitLab CI pipeline for testing the NES project using Conda/Mamba environment
+# This pipeline sets up the environment, installs dependencies, runs tests, and collects coverage reports
+
+# Define the base Docker image and specify runner tags for job execution
+default:
+  image: ghcr.io/prefix-dev/pixi:0.62.2-jammy-cuda-13.0.0
+  tags:
+    - nes
+
+# Define the stages of the pipeline
+stages:
+  - test
+
+# Job to test the Python code in the NES project
+testPython:
+  variables:
+    # Ensure Git submodules (e.g., NES) are fetched for local installs
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apt-get update && apt-get install -y git
+  stage: test
+  script:
+    # Create conda environment from environment.yml
+    - pixi init --import environment.yml
+    - pixi install
+
+    # Install project dependencies inside the environment
+    - pixi run python -m pip install .
+
+    # Run PEP8 and import tests
+    - pixi run "pytest nes/tests/misc -vv"
+
+    # Run Projections tests
+    - pixi run "pytest nes/tests/projections -vv"
+
+    # Run Methods tests
+    - pixi run "pytest nes/tests/methods -vv"
+
+    # Run CLI tests
+    # - pixi run "pytest nes/tests/cli -vvv"
