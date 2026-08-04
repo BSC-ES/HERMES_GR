@@ -1,0 +1,59 @@
+Parameter,Description,Data Type,Required,Choices,Default
+log_level,Level of detail of the running process information.,int,True,1;2;3,None
+input_dir,Path to the input directory of the model.,str,True,None,None
+data_path,Path to the data necessary for the model.,str,True,None,None
+output_dir,Path to the output directory of the model.,str,True,None,None
+output_name,Name of the output file. You can add the string '<date>' that will be substituted by the starting date of the simulation day.,str,True,None,None
+start_date,Starting Date to simulate (UTC),parse_start_date,True,None,None
+end_date,If you want to simulate more than one day you have to specify the ending date of simulation in this parameter. If it is not set end_date = start_date.,str,False,None,None
+output_timestep_type,Type of timestep.,str,True,hourly;daily;monthly;yearly,None
+output_timestep_num,Number of time-steps to simulate.,int,True,None,None
+output_timestep_freq,Frequency between time-steps.,int,True,None,None
+first_time,Indicates if you want to run it for the first time (only create auxiliary files).,parse_bool,False,None,False
+erase_auxiliary_files,Indicates if you want to start from scratch removing the auxiliary files already created.,parse_bool,False,None,False
+output_model,Name of the output model.,str,True,MONARCH;CMAQ;WRF_CHEM;DEFAULT,None
+compression_level,Compression level of the NetCDF output (0 for no compressed output).,int,False,0;1;2;3;4;5;6;7;8;9,4
+serial_write,Indicates if you want to do the writing in serial mode (faster but more memory used).,parse_bool,False,None,True
+output_attributes,Path to the file that contains the global attributes.,str,False,None,None
+domain_type,Type of domain to simulate.,str,True,global_monarch;global;lcc;rotated;mercator;regular;rotated_nested,None
+auxiliary_files_path,Path to the directory where the necessary auxiliary files will be created if they are not created yet.,str,True,None,None
+vertical_description,Path to the file that contains the vertical description of the desired output.,str,True,None,None
+inc_lat,Latitude resolution for a global domain (or global_monarch).,float,False,None,None
+inc_lon,Longitude resolution for a global domain (or global_monarch).,float,False,None,None
+lat_orig,Latitude of the corner of the first cell.,float,False,None,None
+lon_orig,Longitude of the corner of the first cell.,float,False,None,None
+n_lat,Number of latitude elements.,int,False,None,None
+n_lon,Number of longitude elements.,int,False,None,None
+centre_lat,Central geographic latitude of grid (non-rotated degrees).,float,False,None,None
+centre_lon,Central geographic longitude of grid (non-rotated degrees and positive east).,float,False,None,None
+west_boundary,Grid's western boundary from center point (rotated degrees).,float,False,None,None
+south_boundary,Grid's southern boundary from center point (rotated degrees).,float,False,None,None
+inc_rlat,Latitudinal grid resolution (rotated degrees).,float,False,None,None
+inc_rlon,Longitudinal grid resolution (rotated degrees).,float,False,None,None
+parent_grid_path,Path to the netCDF that contains the grid definition.,str,False,None,None
+parent_ratio,Ratio between the parent and the nested domain.,int,False,None,None
+i_parent_start,Location of the I to start the nested.,int,False,None,None
+j_parent_start,Location of the J to start the nested.,int,False,None,None
+n_rlat,Number of rotated latitude points.,int,False,None,None
+n_rlon,Number of rotated longitude points.,int,False,None,None
+lat_1,Standard parallel 1 (in deg).,float,False,None,None
+lat_2,Standard parallel 2 (in deg).,float,False,None,None
+lon_0,Longitude of the central meridian (degrees).,float,False,None,None
+lat_0,Latitude of the origin of the projection (degrees).,float,False,None,None
+nx,Number of grid columns. Corresponds to the NCOLS parameter of the GRIDDESC file.,int,False,None,None
+ny,Number of grid rows. Corresponds to the NROWS parameter of the GRIDDESC file.,int,False,None,None
+inc_x,X-coordinate cell dimension (meters).,float,False,None,None
+inc_y,Y-coordinate cell dimension (meters).,float,False,None,None
+x_0,X-coordinate origin of grid (meters).,float,False,None,None
+y_0,Y-coordinate origin of grid (meters).,float,False,None,None
+lat_ts,Latitude of true scale.,float,False,None,None
+cross_table,Path to the file that contains the information of the datasets to use.,str,True,None,None
+p_vertical,Path to the file that contains all the needed vertical profiles.,str,True,None,None
+p_month,Path to the file that contains all the needed monthly profiles.,str,True,None,None
+p_week,Path to the file that contains all the needed weekly profiles.,str,True,None,None
+p_day,Path to the file that contains all the needed daily profiles.,str,True,None,None
+p_hour,Path to the file that contains all the needed hourly profiles.,str,True,None,None
+p_speciation,Path to the file that contains all the needed speciation profiles.,str,True,None,None
+molecular_weights,Path to the file that contains the molecular weights of the input pollutants.,str,True,None,None
+countries_shapefile,Path to the shapefile that contains the country ISO codes. The column name 'ISO' will be used as country code ID.,str,False,None,None
+timezones_shapefile,Path to the shapefile that contains the timezones. The column name 'tzid' will be used as timezone ID.,str,False,None,None

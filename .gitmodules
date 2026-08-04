@@ -1,0 +1,3 @@
+[submodule "hermes_gr/sources/NES"]
+	path = hermes_gr/sources/NES
+	url = https://gitlab.earth.bsc.es/es/nes.git
