@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+message: "If you use HERMES_GR in your research, please cite the software as follows."
+title: "HERMES_GR: High-Elective Resolution Modelling Emission System - Global-Regional (version v3.0.0)"
+version: 3.0.0
+doi: 10.82201/TQF44A
+date-released: 2026-07-10
+license: Apache-2.0
+repository-code: https://github.com/BSC-ES/HERMES_GR
+url: https://doi.org/10.82201/TQF44A
+
+authors:
+  - family-names: Tena
+    given-names: Carles
+    affiliation: Barcelona Supercomputing Center (BSC-CNS)
+    website: https://www.bsc.es/tena-carles
+
+  - family-names: Gehlen
+    given-names: Johanna
+    affiliation: Barcelona Supercomputing Center (BSC-CNS)
+    website: https://www.bsc.es/gehlen-johanna
+
+  - family-names: Rizza
+    given-names: Luca
+    affiliation: Barcelona Supercomputing Center (BSC-CNS)
+    website: https://www.bsc.es/es/rizza-luca
+
+  - family-names: Guevara
+    given-names: Marc
+    affiliation: Barcelona Supercomputing Center (BSC-CNS)
+    website: https://www.bsc.es/guevara-marc
+
+keywords:
+  - emission modelling
+  - emission inventories
+  - atmospheric chemistry
+  - air quality modelling
+  - chemical transport models
+  - HPC
+  - MPI
+
+references:
+  - type: article
+    authors:
+      - family-names: Guevara
+        given-names: Marc
+      - family-names: Tena
+        given-names: Carles
+      - family-names: Porquet
+        given-names: Manuel
+      - family-names: Jorba
+        given-names: Oriol
+      - family-names: Pérez García-Pando
+        given-names: Carlos
+    title: "HERMES, a stand-alone multi-scale atmospheric emission modelling framework – Part 1: global and regional module"
+    journal: "Geoscientific Model Development"
+    year: 2019
+    volume: 12
+    pages: "1885-1907"
+    doi: 10.5194/gmd-12-1885-2019

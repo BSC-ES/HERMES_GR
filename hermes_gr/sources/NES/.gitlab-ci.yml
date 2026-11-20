@@ -1,0 +1,135 @@
+# Copyright 2018-2026 Earth Sciences Department, Barcelona Supercomputing Center (BSC-CNS)
+#
+# This file is part of NES.
+#
+# Licensed under the Apache License, Version 2.0. See LICENSE for details.
+
+# GitLab CI pipeline for testing the NES project using Conda/Mamba environment
+# This pipeline sets up the environment, installs dependencies, runs tests, and collects coverage reports
+
+# Define the base Docker image and specify runner tags for job execution
+default:
+  image: ghcr.io/prefix-dev/pixi:0.62.2-jammy-cuda-13.0.0
+  tags:
+    - nes
+
+# Define the stages of the pipeline
+stages:
+  - test
+  - mirror
+
+# Job to test the Python code in the NES project
+testPython:
+  variables:
+    # Ensure Git submodules (e.g., NES) are fetched for local installs
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apt-get update && apt-get install -y git
+  stage: test
+  script:
+    # Create conda environment from environment.yml
+    - pixi init --import environment.yml
+    - pixi install
+
+    # Install project dependencies inside the environment
+    - pixi run python -m pip install .
+    - pixi run python -m pip install compliance-checker
+
+    # Run Methods tests
+    - pixi run "pytest nes/tests/methods -vv"
+
+    # Run PEP8 and import tests
+    - pixi run "pytest nes/tests/misc -vv"
+
+    # Run Projections tests (except MPI)
+    - pixi run "pytest nes/tests/projections -vv --ignore=nes/tests/projections/mpi"
+    
+    # Run MPI tests for Projections
+    - >-
+      env OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 OMPI_MCA_rmaps_base_oversubscribe=1
+      pixi run mpiexec -n 2 python -m pytest nes/tests/projections/mpi -vv
+
+    # Run CLI tests
+    # - pixi run "pytest nes/tests/cli -vvv"
+
+# Publish selected files as a GitHub snapshot after successful release tests.
+mirror_releases_subset:
+  stage: mirror
+  image: ubuntu:24.04
+  resource_group: github-releases
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_DEPTH: "0"
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  before_script:
+    - apt-get update && apt-get install -y git curl python3
+    - git config --global user.email "ci@example.com"
+    - git config --global user.name "GitLab CI"
+    - |
+      set -eu
+      test "$CI_COMMIT_REF_PROTECTED" = "true" || { echo "Protect release tags (v*) in GitLab."; exit 1; }
+      test -n "${GH_PAT:-}" || { echo "Missing GH_PAT"; exit 1; }
+      test -n "${GITHUB_REPO:-}" || { echo "Missing GITHUB_REPO"; exit 1; }
+      test -n "${GITHUB_DEFAULT_BRANCH:-}" || { echo "Missing GITHUB_DEFAULT_BRANCH"; exit 1; }
+      test -n "${MIRROR_INCLUDE:-}" || { echo "Missing MIRROR_INCLUDE"; exit 1; }
+    - git fetch origin +refs/heads/production:refs/remotes/origin/production
+  script:
+    - |
+      set -eu
+      if ! git merge-base --is-ancestor "$CI_COMMIT_SHA" origin/production; then
+        echo "Release commit is not part of production; skipping publication."
+        exit 0
+      fi
+
+      mirror_dir=$(mktemp -d)
+      printf '%s\n' "$MIRROR_INCLUDE" | while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        case "$path" in
+          /*|..|../*|*/../*|*/..|.git|.git/*)
+            echo "Invalid mirror path: $path"; exit 1 ;;
+        esac
+        mkdir -p "$mirror_dir/$(dirname "$path")"
+        cp -a "$path" "$mirror_dir/$path"
+      done
+      test -n "$(ls -A "$mirror_dir")" || { echo "Mirror selection is empty."; exit 1; }
+      cd "$mirror_dir"
+      git init
+      git add -A
+      git commit -m "Release ${CI_COMMIT_TAG}"
+      git branch -M "$GITHUB_DEFAULT_BRANCH"
+
+      # Supply credentials without storing the token in the remote URL.
+      export GIT_ASKPASS="$mirror_dir/askpass.sh"
+      export GIT_TERMINAL_PROMPT=0
+      printf '%s\n' '#!/bin/sh' 'case "$1" in *Username*) echo x-access-token ;; *) printf "%s\n" "$GH_PAT" ;; esac' > "$GIT_ASKPASS"
+      chmod 700 "$GIT_ASKPASS"
+      git remote add github "https://github.com/${GITHUB_REPO}.git"
+
+      # Reuse the published snapshot on retries; never move an existing tag.
+      existing_tag=$(git ls-remote --tags github "refs/tags/$CI_COMMIT_TAG")
+      if [ -n "$existing_tag" ]; then
+        git fetch github "refs/tags/$CI_COMMIT_TAG:refs/tags/$CI_COMMIT_TAG"
+        echo "Tag already published; retaining its snapshot."
+      else
+        git tag "$CI_COMMIT_TAG"
+        git push --atomic github "$GITHUB_DEFAULT_BRANCH" "refs/tags/$CI_COMMIT_TAG" --force
+      fi
+
+      release_url="https://api.github.com/repos/${GITHUB_REPO}/releases"
+      status=$(curl --silent --show-error --output /tmp/github-release.json --write-out '%{http_code}' \
+        -H "Authorization: Bearer ${GH_PAT}" \
+        -H "Accept: application/vnd.github+json" \
+        "$release_url/tags/$CI_COMMIT_TAG")
+      case "$status" in
+        200) echo "GitHub Release already exists." ;;
+        404)
+          python3 -c 'import json, os; tag = os.environ["CI_COMMIT_TAG"]; print(json.dumps({"tag_name": tag, "name": tag, "body": "Release " + tag, "draft": False, "prerelease": False, "generate_release_notes": True}))' > /tmp/github-release-payload.json
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${GH_PAT}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            --data-binary @/tmp/github-release-payload.json "$release_url"
+          ;;
+        *) cat /tmp/github-release.json; echo "GitHub API returned HTTP $status"; exit 1 ;;
+      esac
