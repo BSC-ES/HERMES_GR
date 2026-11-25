@@ -1,0 +1,14 @@
+.idea
+*.pyc
+dist
+build
+*.egg*
+preproc/tests/**/*.nc
+preproc/tests/**/*.csv
+preproc/tests/**/*.json
+preproc/tests/**/*.txt
+*hermes_gr/sources/NES/build/*
+.DS_Store
+*rsync*
+*cache*
+*vscode*

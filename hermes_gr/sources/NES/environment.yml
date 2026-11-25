@@ -1,0 +1,46 @@
+# Copyright 2018-2026 Earth Sciences Department, Barcelona Supercomputing Center (BSC-CNS)
+#
+# This file is part of NES.
+#
+# Licensed under the Apache License, Version 2.0. See LICENSE for details.
+
+channels:
+- conda-forge
+
+dependencies:
+- python=3.10
+- libfabric=2.5.0
+- libfabric1=2.5.0
+- libnetcdf=*=mpi_*
+- netCDF4=*=mpi_*
+- h5py=*=mpi_*
+- pytest-cov
+- pycodestyle>=2.10.0
+- geopandas>=0.10.2
+- rtree>=0.9.0
+- numpy>=1.20.0
+- pyproj>=3.2
+- setuptools>=66.1.1
+- pytest>=7.2.1
+- shapely
+- mpi4py>=3.1
+- eccodes
+- python-eccodes
+- filelock
+- configargparse
+- psutil
+- pyyaml
+- rasterio
+- openpyxl
+- jupyter
+- ipykernel
+- pip
+- numba
+- gdal
+- pip:
+  - argcomplete
+
+variables:
+  CC: mpicc
+  CXX: mpicxx
+  LDFLAGS: -shared
